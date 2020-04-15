@@ -1,3 +1,20 @@
+# System Files
+.DS_Store
+
+# Extra Project Files
+compile_commands.json
+.clangd
+
+# Temporary Files
+*.swp
+
+# Build Directory
+build
+
+# Documentation output
+html
+latex
+
 # Prerequisites
 *.d
 
