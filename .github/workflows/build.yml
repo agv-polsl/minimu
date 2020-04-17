@@ -8,8 +8,8 @@ on:
 
 jobs:
   build:
-
-    runs-on: ubuntu-latest
+    runs-on: linux
+    container: agvpolsl/minimu-i2c-builder
 
     steps:
     - uses: actions/checkout@v2
