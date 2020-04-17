@@ -2,12 +2,11 @@
 #define LSM6_IMU_REGS_H
 
 #include "minimu/i2c_device.h"
+#include "minimu/lsm6_regs_addr.h"
 
 namespace minimu {
 
-struct lsm6_imu_regs : public minimu_regs {};
-
-class Lsm6_imu : public I2c_device {
+class Lsm6_imu : public I2c_device<lsm6_regs_addr> {
    public:
     point3d read_gyro();
     point3d read_acc();

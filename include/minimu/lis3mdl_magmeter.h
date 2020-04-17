@@ -2,12 +2,11 @@
 #define LIS3MDL_MAGNETOMETR_H
 
 #include "minimu/i2c_device.h"
+#include "minimu/lis3mdl_regs_addr.h"
 
 namespace minimu {
 
-struct lis3mdl_magmeter_regs : public minimu_regs {};
-
-class Lis3mdl_magmeter : public I2c_device {
+class Lis3mdl_magmeter : public I2c_device<lis3mdl_regs_addr> {
    public:
     point3d read();
 
