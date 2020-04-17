@@ -6,6 +6,11 @@
 namespace minimu {
 
 enum class lsm6_regs_addr : uint8_t {
+    /* Device i2c addresses */
+    sa0_high_addr = 0b1101011,
+    sa0_low_addr = 0b1101010,
+
+    /* Device registers */
     func_cfg_access = 0x01,
 
     fifo_ctrl1 = 0x06,
