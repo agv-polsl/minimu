@@ -2,11 +2,11 @@
 #define I2C_DEVICE_H
 
 #include <fcntl.h>
-#include <i2c/smbus.h>
 #include <linux/i2c-dev.h>
-#include <sys/stat.h>
-#include <sys/types.h>
+#include <sys/ioctl.h>
+#include <unistd.h>
 
+#include <cstddef>
 #include <cstdint>
 #include <cstdlib>
 #include <stdexcept>
@@ -26,10 +26,10 @@ enum class sa0_state { sa0_low, sa0_high, sa0_auto };
 template <typename regmap_type>
 class I2c_device {
    public:
-    void write(const uint8_t value) const;
-    void write(const regmap_type address, const uint8_t value) const;
-    uint8_t read() const;
-    uint8_t read(const regmap_type address) const;
+    void write(const std::byte value) const;
+    void write(const regmap_type address, const std::byte value) const;
+    std::byte read() const;
+    std::byte read(const regmap_type address) const;
 
    protected:
     void open_dev(const uint8_t adapter_nr);
@@ -49,6 +49,10 @@ class Minimu_i2c_device : public I2c_device<regmap_type> {
 
     const uint8_t who_id;
 };
+
+inline uint16_t merge_bytes(const std::byte high, const std::byte low) {
+    return static_cast<uint16_t>(high << 8 | low);
+}
 
 template <typename regmap_type>
 void I2c_device<regmap_type>::open_dev(const uint8_t adapter_nr) {
@@ -73,40 +77,43 @@ void I2c_device<regmap_type>::connect(const regmap_type i2c_address) {
 }
 
 template <typename regmap_type>
-void I2c_device<regmap_type>::write(const uint8_t value) const {
-    auto dev_status = i2c_smbus_write_byte(device_handle, value);
+void I2c_device<regmap_type>::write(const std::byte value) const {
+    auto v = static_cast<uint8_t>(value);
+
+    auto dev_status = ::write(device_handle, &v, 1);
     if (dev_status < 0) {
         throw std::runtime_error{"Could not write to i2c device"s};
     }
 }
 
-template <typename regmap_type>
-void I2c_device<regmap_type>::write(const regmap_type address,
-                                    const uint8_t value) const {
-    auto dev_status = i2c_smbus_write_byte_data(device_handle, address, value);
-    if (dev_status < 0) {
+template <typename address_map>
+void I2c_device<address_map>::write(const address_map address,
+                                    const std::byte value) const {
+    constexpr size_t bytes_to_write = 2;
+    uint8_t buffer[bytes_to_write] = {static_cast<uint8_t>(address),
+                                      static_cast<uint8_t>(value)};
+
+    if (::write(device_handle, buffer, bytes_to_write) != bytes_to_write) {
         throw std::runtime_error{"Could not read from i2c device at: "s +
                                  std::to_string(address)};
     }
 }
 
 template <typename regmap_type>
-uint8_t I2c_device<regmap_type>::read() const {
-    uint8_t ret = i2c_smbus_read_byte(device_handle);
-    if (ret < 0) {
+std::byte I2c_device<regmap_type>::read() const {
+    uint8_t ret;
+    constexpr size_t bytes_to_read = 1;
+
+    if (::read(device_handle, &ret, bytes_to_read) != bytes_to_read) {
         throw std::runtime_error{"Could not read from i2c device"s};
     }
-    return ret;
+    return std::byte{ret};
 }
 
 template <typename regmap_type>
-uint8_t I2c_device<regmap_type>::read(const regmap_type address) const {
-    auto ret = i2c_smbus_read_byte_data(device_handle, address);
-    if (ret < 0) {
-        throw std::runtime_error{"Could not read from i2c device at: "s +
-                                 std::to_string(address)};
-    }
-    return ret;
+std::byte I2c_device<regmap_type>::read(const regmap_type address) const {
+    write(static_cast<std::byte>(address));
+    return read();
 }
 
 template <typename regmap_type>
