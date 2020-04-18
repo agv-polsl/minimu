@@ -6,8 +6,11 @@
 namespace minimu {
 
 enum class lis3mdl_regs_addr : uint8_t {
-    who_am_i = 0x0f,
+    /* Device i2c addresses */
+    sa0_high_addr = 0b0011110,
+    sa0_low_addr = 0b0011100,
 
+    /* Device registers */
     ctrl_reg1 = 0x20,
     ctrl_reg2 = 0x21,
     ctrl_reg3 = 0x22,
@@ -22,6 +25,7 @@ enum class lis3mdl_regs_addr : uint8_t {
     out_z_l = 0x2c,
     out_z_h = 0x2d,
     temp_out_l = 0x2e,
+    who_am_i = 0x0f,
     temp_out_h = 0x2f,
     int_cfg = 0x30,
     int_src = 0x31,

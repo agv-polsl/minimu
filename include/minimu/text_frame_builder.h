@@ -16,6 +16,9 @@ class TextFrameBuilder {
     std::string make_text_frame();
 
    private:
+    std::string make_readouts_string();
+    std::string make_time_string();
+
     Lsm6_imu& imu;
     Lis3mdl_magmeter& mag;
 };

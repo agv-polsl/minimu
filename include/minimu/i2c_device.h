@@ -26,28 +26,38 @@ enum class sa0_state { sa0_low, sa0_high, sa0_auto };
 template <typename regmap_type>
 class I2c_device {
    public:
+    I2c_device() = default;
+    explicit I2c_device(const uint8_t adapter_nr) { open_dev(adapter_nr); }
+    I2c_device(const uint8_t adapter_nr, const regmap_type i2c_address) {
+        open_dev(adapter_nr);
+        connect(i2c_address);
+    }
+    void open_dev(const uint8_t adapter_nr);
+    bool try_connect(const regmap_type i2c_address) noexcept;
+    void connect(const regmap_type i2c_address);
     void write(const std::byte value) const;
     void write(const regmap_type address, const std::byte value) const;
     std::byte read() const;
     std::byte read(const regmap_type address) const;
 
    protected:
-    void open_dev(const uint8_t adapter_nr);
-    bool try_connect(const regmap_type i2c_address) noexcept;
-    void connect(const regmap_type i2c_address);
-    void detect_device_mode();
-
     int device_handle;
 };
 
-template <typename regmap_type>
+template <typename regmap_type, std::byte device_id>
 class Minimu_i2c_device : public I2c_device<regmap_type> {
+   public:
+    Minimu_i2c_device() = delete;
+    Minimu_i2c_device(const uint8_t adapter_nr,
+                      const sa0_state device_mode = sa0_state::sa0_auto)
+        : I2c_device<regmap_type>{adapter_nr} {
+        connect(device_mode);
+    }
+
    protected:
     void connect(const sa0_state device_mode = sa0_state::sa0_auto);
     void detect_device_mode();
     bool who_id_matches() const;
-
-    const uint8_t who_id;
 };
 
 inline uint16_t merge_bytes(const std::byte high, const std::byte low) {
@@ -94,8 +104,7 @@ void I2c_device<address_map>::write(const address_map address,
                                       static_cast<uint8_t>(value)};
 
     if (::write(device_handle, buffer, bytes_to_write) != bytes_to_write) {
-        throw std::runtime_error{"Could not read from i2c device at: "s +
-                                 std::to_string(address)};
+        throw std::runtime_error{"Could not read from i2c device"};
     }
 }
 
@@ -116,18 +125,18 @@ std::byte I2c_device<regmap_type>::read(const regmap_type address) const {
     return read();
 }
 
-template <typename regmap_type>
-bool Minimu_i2c_device<regmap_type>::who_id_matches() const {
-    return read(regmap_type::who_am_i) == who_id;
+template <typename regmap_type, std::byte device_id>
+bool Minimu_i2c_device<regmap_type, device_id>::who_id_matches() const {
+    return I2c_device<regmap_type>::read(regmap_type::who_am_i) == device_id;
 }
 
 /* TODO: maybe some refactor, more elegant logic here */
-template <typename regmap_type>
-void Minimu_i2c_device<regmap_type>::connect(const sa0_state device_mode) {
+template <typename regmap_type, std::byte device_id>
+void Minimu_i2c_device<regmap_type, device_id>::connect(
+    const sa0_state device_mode) {
     switch (device_mode) {
         case sa0_state::sa0_low:
-            connect(regmap_type::sa0_low_addr);
-
+            I2c_device<regmap_type>::connect(regmap_type::sa0_low_addr);
             if (!who_id_matches()) {
                 throw std::runtime_error{
                     "Connected i2c device id did not match"s};
@@ -135,8 +144,7 @@ void Minimu_i2c_device<regmap_type>::connect(const sa0_state device_mode) {
             break;
 
         case sa0_state::sa0_high:
-            connect(regmap_type::sa0_high_addr);
-
+            I2c_device<regmap_type>::connect(regmap_type::sa0_high_addr);
             if (!who_id_matches()) {
                 throw std::runtime_error{
                     "Connected i2c device id did not match"s};
@@ -149,12 +157,14 @@ void Minimu_i2c_device<regmap_type>::connect(const sa0_state device_mode) {
     }
 }
 
-template <typename regmap_type>
-void Minimu_i2c_device<regmap_type>::detect_device_mode() {
-    if (try_connect(regmap_type::sa0_low_addr) && who_id_matches()) {
+template <typename regmap_type, std::byte device_id>
+void Minimu_i2c_device<regmap_type, device_id>::detect_device_mode() {
+    if (I2c_device<regmap_type>::try_connect(regmap_type::sa0_low_addr) &&
+        who_id_matches()) {
         return;
     }
-    if (try_connect(regmap_type::sa0_low_addr) && who_id_matches()) {
+    if (I2c_device<regmap_type>::try_connect(regmap_type::sa0_low_addr) &&
+        who_id_matches()) {
         return;
     } else {
         throw std::runtime_error{
