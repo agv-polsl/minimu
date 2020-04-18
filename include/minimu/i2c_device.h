@@ -6,11 +6,12 @@
 #include <sys/ioctl.h>
 #include <unistd.h>
 
+#include <cerrno>
 #include <cstddef>
 #include <cstdint>
 #include <cstdlib>
+#include <cstring>
 #include <stdexcept>
-
 namespace minimu {
 
 using std::string_literals::operator""s;
@@ -92,7 +93,8 @@ void I2c_device<regmap_type>::write(const std::byte value) const {
 
     auto dev_status = ::write(device_handle, &v, 1);
     if (dev_status < 0) {
-        throw std::runtime_error{"Could not write to i2c device"s};
+        throw std::runtime_error{"Could not write to i2c device; "s +
+                                 std::strerror(errno)};
     }
 }
 
