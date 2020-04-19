@@ -12,6 +12,7 @@
 #include <cstdlib>
 #include <cstring>
 #include <stdexcept>
+
 namespace minimu {
 
 using std::string_literals::operator""s;
@@ -28,11 +29,9 @@ template <typename regmap_type>
 class I2c_device {
    public:
     I2c_device() = default;
-    explicit I2c_device(const uint8_t adapter_nr) { open_dev(adapter_nr); }
-    I2c_device(const uint8_t adapter_nr, const regmap_type i2c_address) {
-        open_dev(adapter_nr);
-        connect(i2c_address);
-    }
+    explicit I2c_device(const uint8_t adapter_nr);
+    I2c_device(const uint8_t adapter_nr, const regmap_type i2c_address);
+
     void open_dev(const uint8_t adapter_nr);
     bool try_connect(const regmap_type i2c_address) noexcept;
     void connect(const regmap_type i2c_address);
@@ -50,10 +49,7 @@ class Minimu_i2c_device : public I2c_device<regmap_type> {
    public:
     Minimu_i2c_device() = delete;
     Minimu_i2c_device(const uint8_t adapter_nr,
-                      const sa0_state device_mode = sa0_state::sa0_auto)
-        : I2c_device<regmap_type>{adapter_nr} {
-        connect(device_mode);
-    }
+                      const sa0_state device_mode = sa0_state::sa0_auto);
 
    protected:
     void connect(const sa0_state device_mode = sa0_state::sa0_auto);
@@ -63,6 +59,18 @@ class Minimu_i2c_device : public I2c_device<regmap_type> {
 
 inline uint16_t merge_bytes(const std::byte high, const std::byte low) {
     return static_cast<uint16_t>(high << 8 | low);
+}
+
+template <typename regmap_type>
+I2c_device<regmap_type>::I2c_device(const uint8_t adapter_nr) {
+    open_dev(adapter_nr);
+}
+
+template <typename regmap_type>
+I2c_device<regmap_type>::I2c_device(const uint8_t adapter_nr,
+                                    const regmap_type i2c_address) {
+    open_dev(adapter_nr);
+    connect(i2c_address);
 }
 
 template <typename regmap_type>
@@ -130,6 +138,13 @@ std::byte I2c_device<regmap_type>::read(const regmap_type address) const {
 template <typename regmap_type, std::byte device_id>
 bool Minimu_i2c_device<regmap_type, device_id>::who_id_matches() const {
     return I2c_device<regmap_type>::read(regmap_type::who_am_i) == device_id;
+}
+
+template <typename regmap_type, std::byte device_id>
+Minimu_i2c_device<regmap_type, device_id>::Minimu_i2c_device(
+    const uint8_t adapter_nr, const sa0_state device_mode)
+    : I2c_device<regmap_type>{adapter_nr} {
+    connect(device_mode);
 }
 
 /* TODO: maybe some refactor, more elegant logic here */
