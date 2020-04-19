@@ -82,7 +82,7 @@ void I2c_device<regmap_type>::open_dev(const uint8_t adapter_nr) {
 
 template <typename regmap_type>
 void I2c_device<regmap_type>::connect(const regmap_type i2c_address) {
-    auto dev_status = ioctl(device_handle, I2C_SLAVE, i2c_address) > -1;
+    auto dev_status = ioctl(device_handle, I2C_SLAVE, i2c_address);
     if (dev_status < 0) {
         throw std::runtime_error{"Could not connect to i2c device ;"s +
                                  std::strerror(errno)};
