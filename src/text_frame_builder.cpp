@@ -1,12 +1,12 @@
 #include "minimu/text_frame_builder.h"
 
-#include <sstream>
 #include <chrono>
+#include <sstream>
 
 namespace minimu {
 
 std::string TextFrameBuilder::make_text_frame() {
-	return make_time_string() + make_readouts_string();
+    return make_dt_string() + "," + make_readouts_string();
 }
 
 std::string TextFrameBuilder::make_readouts_string() {
@@ -21,9 +21,18 @@ std::string TextFrameBuilder::make_readouts_string() {
     return ss.str();
 }
 
-std::string TextFrameBuilder::make_time_string() {
-    auto now = std::chrono::system_clock::now();
-    return std::to_string(std::chrono::system_clock::to_time_t(now));
+std::string TextFrameBuilder::make_dt_string() {
+    return std::to_string(yield_dt());
+}
+
+double TextFrameBuilder::yield_dt() {
+    static auto oldt = std::chrono::high_resolution_clock::now();
+
+    auto newt = std::chrono::high_resolution_clock::now();
+    std::chrono::duration<double> ms = (newt - oldt);
+    oldt = newt;
+
+    return ms.count();
 }
 
 }  // namespace minimu

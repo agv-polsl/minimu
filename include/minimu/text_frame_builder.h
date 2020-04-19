@@ -17,7 +17,8 @@ class TextFrameBuilder {
 
    private:
     std::string make_readouts_string();
-    std::string make_time_string();
+    std::string make_dt_string();
+    double yield_dt();
 
     Lsm6_imu& imu;
     Lis3mdl_magmeter& mag;
