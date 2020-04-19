@@ -6,7 +6,7 @@
 namespace minimu {
 
 std::string TextFrameBuilder::make_text_frame() {
-    return make_dt_string() + "," + make_readouts_string();
+    return make_dt_string() + "," + make_readouts_string() + '\n';
 }
 
 std::string TextFrameBuilder::make_readouts_string() {
