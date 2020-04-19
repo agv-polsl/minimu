@@ -11,8 +11,7 @@ constexpr std::byte lsm6_id{0x69};
 class Lsm6_imu : public Minimu_i2c_device<lsm6_regs_addr, lsm6_id> {
    public:
     Lsm6_imu() = delete;
-    explicit Lsm6_imu(const uint8_t adapter_nr,
-                      const sa0_state device_mode = sa0_state::sa0_auto);
+    Lsm6_imu(const uint8_t adapter_nr, const sa0_state device_mode);
     point3d read_gyro();
     point3d read_acc();
 

@@ -23,7 +23,7 @@ struct point3d {
     double z;
 };
 
-enum class sa0_state { sa0_low, sa0_high, sa0_auto };
+enum class sa0_state { sa0_low, sa0_high };
 
 template <typename regmap_type>
 class I2c_device {
@@ -33,7 +33,6 @@ class I2c_device {
     I2c_device(const uint8_t adapter_nr, const regmap_type i2c_address);
 
     void open_dev(const uint8_t adapter_nr);
-    bool try_connect(const regmap_type i2c_address) noexcept;
     void connect(const regmap_type i2c_address);
     void write(const std::byte value) const;
     void write(const regmap_type address, const std::byte value) const;
@@ -48,13 +47,11 @@ template <typename regmap_type, std::byte device_id>
 class Minimu_i2c_device : public I2c_device<regmap_type> {
    public:
     Minimu_i2c_device() = delete;
-    Minimu_i2c_device(const uint8_t adapter_nr,
-                      const sa0_state device_mode = sa0_state::sa0_auto);
+    Minimu_i2c_device(const uint8_t adapter_nr, sa0_state device_mode);
 
    protected:
-    void connect(const sa0_state device_mode = sa0_state::sa0_auto);
-    void detect_device_mode();
-    bool who_id_matches() const;
+    void connect(const sa0_state device_mode);
+    bool test_id() const;
 };
 
 inline uint16_t merge_bytes(const std::byte high, const std::byte low) {
@@ -84,14 +81,9 @@ void I2c_device<regmap_type>::open_dev(const uint8_t adapter_nr) {
 }
 
 template <typename regmap_type>
-bool I2c_device<regmap_type>::try_connect(
-    const regmap_type i2c_address) noexcept {
-    return ioctl(device_handle, I2C_SLAVE, i2c_address) > -1;
-}
-
-template <typename regmap_type>
 void I2c_device<regmap_type>::connect(const regmap_type i2c_address) {
-    if (!try_connect(i2c_address)) {
+    auto dev_status = ioctl(device_handle, I2C_SLAVE, i2c_address) > -1;
+    if (dev_status < 0) {
         throw std::runtime_error{"Could not connect to i2c device ;"s +
                                  std::strerror(errno)};
     }
@@ -140,8 +132,10 @@ std::byte I2c_device<regmap_type>::read(const regmap_type address) const {
 }
 
 template <typename regmap_type, std::byte device_id>
-bool Minimu_i2c_device<regmap_type, device_id>::who_id_matches() const {
-    return I2c_device<regmap_type>::read(regmap_type::who_am_i) == device_id;
+bool Minimu_i2c_device<regmap_type, device_id>::test_id() const {
+    if (I2c_device<regmap_type>::read(regmap_type::who_am_i) != device_id) {
+        throw std::runtime_error{"Connected i2c device id did not match"s};
+    }
 }
 
 template <typename regmap_type, std::byte device_id>
@@ -151,46 +145,25 @@ Minimu_i2c_device<regmap_type, device_id>::Minimu_i2c_device(
     connect(device_mode);
 }
 
-/* TODO: maybe some refactor, more elegant logic here */
 template <typename regmap_type, std::byte device_id>
 void Minimu_i2c_device<regmap_type, device_id>::connect(
     const sa0_state device_mode) {
     switch (device_mode) {
         case sa0_state::sa0_low:
             I2c_device<regmap_type>::connect(regmap_type::sa0_low_addr);
-            if (!who_id_matches()) {
-                throw std::runtime_error{
-                    "Connected i2c device id did not match"s};
-            }
             break;
 
         case sa0_state::sa0_high:
             I2c_device<regmap_type>::connect(regmap_type::sa0_high_addr);
-            if (!who_id_matches()) {
-                throw std::runtime_error{
-                    "Connected i2c device id did not match"s};
-            }
             break;
 
         default:
-            detect_device_mode();
+            throw std::logic_error{
+                "Device mode identifier recognized, but misses implementation "
+                "for connecting device with associated address"};
             break;
     }
-}
-
-template <typename regmap_type, std::byte device_id>
-void Minimu_i2c_device<regmap_type, device_id>::detect_device_mode() {
-    if (I2c_device<regmap_type>::try_connect(regmap_type::sa0_low_addr) &&
-        who_id_matches()) {
-        return;
-    }
-    if (I2c_device<regmap_type>::try_connect(regmap_type::sa0_low_addr) &&
-        who_id_matches()) {
-        return;
-    } else {
-        throw std::runtime_error{
-            "Could not find matching i2c device using auto-detect mode"s};
-    }
+    test_id();
 }
 
 }  // namespace minimu

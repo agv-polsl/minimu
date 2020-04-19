@@ -12,9 +12,7 @@ class Lis3mdl_magmeter
     : public Minimu_i2c_device<lis3mdl_regs_addr, lis3mdl_id> {
    public:
     Lis3mdl_magmeter() = delete;
-    explicit Lis3mdl_magmeter(
-        const uint8_t adapter_nr,
-        const sa0_state device_mode = sa0_state::sa0_auto);
+    Lis3mdl_magmeter(const uint8_t adapter_nr, const sa0_state device_mode);
     point3d read() const;
 
    private:
