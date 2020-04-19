@@ -78,7 +78,8 @@ void I2c_device<regmap_type>::open_dev(const uint8_t adapter_nr) {
     const std::string path{"/dev/i2c-" + std::to_string(adapter_nr)};
     device_handle = open(path.c_str(), O_RDWR);
     if (device_handle < 0) {
-        throw std::runtime_error{"Could not open i2c device at: "s + path};
+        throw std::runtime_error{"Could not open i2c device at: "s + path +
+                                 "; " + std::strerror(errno)};
     }
 }
 
@@ -91,7 +92,8 @@ bool I2c_device<regmap_type>::try_connect(
 template <typename regmap_type>
 void I2c_device<regmap_type>::connect(const regmap_type i2c_address) {
     if (!try_connect(i2c_address)) {
-        throw std::runtime_error{"Could not connect to i2c device"s};
+        throw std::runtime_error{"Could not connect to i2c device ;"s +
+                                 std::strerror(errno)};
     }
 }
 
@@ -114,7 +116,8 @@ void I2c_device<address_map>::write(const address_map address,
                                       static_cast<uint8_t>(value)};
 
     if (::write(device_handle, buffer, bytes_to_write) != bytes_to_write) {
-        throw std::runtime_error{"Could not read from i2c device"};
+        throw std::runtime_error{"Could not read from i2c device; "s +
+                                 std::strerror(errno)};
     }
 }
 
@@ -124,7 +127,8 @@ std::byte I2c_device<regmap_type>::read() const {
     constexpr size_t bytes_to_read = 1;
 
     if (::read(device_handle, &ret, bytes_to_read) != bytes_to_read) {
-        throw std::runtime_error{"Could not read from i2c device"s};
+        throw std::runtime_error{"Could not read from i2c device; "s +
+                                 std::strerror(errno)};
     }
     return std::byte{ret};
 }
