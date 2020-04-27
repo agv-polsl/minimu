@@ -6,18 +6,23 @@
 
 namespace minimu {
 
-class Lis3mdl_magmeter : public I2c_device<lis3mdl_regs_addr> {
+constexpr std::byte lis3mdl_id{0x3D};
+
+class Lis3mdl_magmeter
+    : public Minimu_i2c_device<lis3mdl_regs_addr, lis3mdl_id> {
    public:
-    point3d read();
+    Lis3mdl_magmeter() = delete;
+    Lis3mdl_magmeter(const uint8_t adapter_nr, const sa0_state device_mode);
+    point3d read() const;
+
+   private:
+    double scale;
 
     void default_setup();
-    void set_rate();
-    void set_auto_increment();
-    void set_continuous_mode();
-    void set_default_xy_axes_rate();
-    void set_default_z_axis_rate();
+    void set_default_rate();
     void set_default_scale();
-};
+    void set_continuous_mode();
+};  // namespace minimu
 
 }  // namespace minimu
 

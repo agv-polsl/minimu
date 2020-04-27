@@ -6,6 +6,9 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 add_executable(minimu
     src/main.cpp
     src/minimu.cpp
+    src/lsm6_imu.cpp
+    src/lis3mdl_magnetometer.cpp
+    src/text_frame_builder.cpp
 )
 
 target_include_directories(minimu
