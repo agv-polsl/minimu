@@ -21,8 +21,11 @@ static double mg_to_mps2(double acc_in_mg) {
     return acc_in_mg * earth_g / 1000.0;
 }
 
+static double mdps_to_dps(double gyro_in_mdps) { return gyro_in_mdps / 1000.0; }
+
 point3d Lsm6_imu::read_gyro() {
-    return read_3d_burst(lsm6_regs_addr::outx_l_g, gyro_scale);
+    auto gyror = read_3d_burst(lsm6_regs_addr::outx_l_g, gyro_scale);
+    return {mdps_to_dps(gyror.x), mdps_to_dps(gyror.y), mdps_to_dps(gyror.z)};
 }
 
 point3d Lsm6_imu::read_acc() {
