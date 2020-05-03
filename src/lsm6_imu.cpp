@@ -8,18 +8,12 @@ Lsm6_imu::Lsm6_imu(const uint8_t adapter_nr, const sa0_state device_mode)
 }
 
 point3d Lsm6_imu::read_3d_burst(lsm6_regs_addr start_addr, double scale) {
-    write(static_cast<std::byte>(start_addr));
+    constexpr size_t num_of_bytes_in_3d_point = 6;
+    auto bytes_block = read_bytes_block(start_addr, num_of_bytes_in_3d_point);
 
-    std::byte x_low = read();
-    std::byte x_high = read();
-    std::byte y_low = read();
-    std::byte y_high = read();
-    std::byte z_low = read();
-    std::byte z_high = read();
-
-    return {scale * merge_bytes(x_high, x_low),
-            scale * merge_bytes(y_high, y_low),
-            scale * merge_bytes(z_high, z_low)};
+    return {scale * merge_bytes(bytes_block[1], bytes_block[0]),
+            scale * merge_bytes(bytes_block[3], bytes_block[2]),
+            scale * merge_bytes(bytes_block[5], bytes_block[4])};
 }
 
 point3d Lsm6_imu::read_gyro() {
