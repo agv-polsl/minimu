@@ -8,26 +8,29 @@ Lsm6_imu::Lsm6_imu(const uint8_t adapter_nr, const sa0_state device_mode)
 }
 
 point3d Lsm6_imu::read_3d_burst(lsm6_regs_addr start_addr, double scale) {
-    write(static_cast<std::byte>(start_addr));
+    constexpr size_t num_of_bytes_in_3d_point = 6;
+    auto bytes_block = read_bytes_block(start_addr, num_of_bytes_in_3d_point);
 
-    std::byte x_low = read();
-    std::byte x_high = read();
-    std::byte y_low = read();
-    std::byte y_high = read();
-    std::byte z_low = read();
-    std::byte z_high = read();
-
-    return {scale * merge_bytes(x_high, x_low),
-            scale * merge_bytes(y_high, y_low),
-            scale * merge_bytes(z_high, z_low)};
+    return {scale * merge_bytes(bytes_block[1], bytes_block[0]),
+            scale * merge_bytes(bytes_block[3], bytes_block[2]),
+            scale * merge_bytes(bytes_block[5], bytes_block[4])};
 }
 
+static double mg_to_mps2(double acc_in_mg) {
+    constexpr double earth_g = 9.80665;
+    return acc_in_mg * earth_g / 1000.0;
+}
+
+static double mdps_to_dps(double gyro_in_mdps) { return gyro_in_mdps / 1000.0; }
+
 point3d Lsm6_imu::read_gyro() {
-    return read_3d_burst(lsm6_regs_addr::outx_l_g, gyro_scale);
+    auto gyror = read_3d_burst(lsm6_regs_addr::outx_l_g, gyro_scale);
+    return {mdps_to_dps(gyror.x), mdps_to_dps(gyror.y), mdps_to_dps(gyror.z)};
 }
 
 point3d Lsm6_imu::read_acc() {
-    return read_3d_burst(lsm6_regs_addr::outx_l_xl, acc_scale);
+    auto accr = read_3d_burst(lsm6_regs_addr::outx_l_xl, acc_scale);
+    return {mg_to_mps2(accr.x), mg_to_mps2(accr.y), mg_to_mps2(accr.z)};
 }
 
 void Lsm6_imu::default_setup() {

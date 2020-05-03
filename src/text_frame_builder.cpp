@@ -18,6 +18,9 @@ std::string TextFrameBuilder::make_readouts_string() {
     ss << gyror.x << ',' << gyror.y << ',' << gyror.z << ',' << accr.x << ','
        << accr.y << ',' << accr.z << ',' << magr.x << ',' << magr.y << ','
        << magr.z << ',';
+    ss << accr.x << ',' << accr.y << ',' << accr.z << ',' << gyror.x << ','
+       << gyror.y << ',' << gyror.z << ',' << magr.x << ',' << magr.y << ','
+       << magr.z << ',';
     return ss.str();
 }
 

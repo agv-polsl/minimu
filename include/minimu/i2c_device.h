@@ -12,6 +12,7 @@
 #include <cstdlib>
 #include <cstring>
 #include <stdexcept>
+#include <vector>
 
 namespace minimu {
 
@@ -38,6 +39,8 @@ class I2c_device {
     void write(const regmap_type address, const std::byte value) const;
     std::byte read() const;
     std::byte read(const regmap_type address) const;
+    std::vector<std::byte> read_bytes_block(const regmap_type addres,
+                                            const size_t bytes_to_read) const;
 
    protected:
     int device_handle;
@@ -55,7 +58,7 @@ class Minimu_i2c_device : public I2c_device<regmap_type> {
 };
 
 inline uint16_t merge_bytes(const std::byte high, const std::byte low) {
-    return static_cast<uint16_t>(high << 8 | low);
+    return static_cast<uint16_t>(high) << 8 | static_cast<uint16_t>(low);
 }
 
 template <typename regmap_type>
@@ -129,6 +132,19 @@ template <typename regmap_type>
 std::byte I2c_device<regmap_type>::read(const regmap_type address) const {
     write(static_cast<std::byte>(address));
     return read();
+}
+
+template <typename regmap_type>
+std::vector<std::byte> I2c_device<regmap_type>::read_bytes_block(
+    const regmap_type address, const size_t bytes_to_read) const {
+    auto ret = std::vector<std::byte>(bytes_to_read);
+
+    write(static_cast<std::byte>(address));
+    if (::read(device_handle, ret.data(), bytes_to_read) != bytes_to_read) {
+        throw std::runtime_error{"Could not read from i2c device; "s +
+                                 std::strerror(errno)};
+    }
+    return ret;
 }
 
 template <typename regmap_type, std::byte device_id>
