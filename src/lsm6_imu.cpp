@@ -22,12 +22,12 @@ static double mg_to_mps2(double acc_in_mg) {
 }
 
 point3d Lsm6_imu::read_gyro() {
-    auto accr = read_3d_burst(lsm6_regs_addr::outx_l_g, gyro_scale);
-    return {mg_to_mps2(accr.x), mg_to_mps2(accr.y), mg_to_mps2(accr.z)};
+    return read_3d_burst(lsm6_regs_addr::outx_l_g, gyro_scale);
 }
 
 point3d Lsm6_imu::read_acc() {
-    return read_3d_burst(lsm6_regs_addr::outx_l_xl, acc_scale);
+    auto accr = read_3d_burst(lsm6_regs_addr::outx_l_xl, acc_scale);
+    return {mg_to_mps2(accr.x), mg_to_mps2(accr.y), mg_to_mps2(accr.z)};
 }
 
 void Lsm6_imu::default_setup() {
