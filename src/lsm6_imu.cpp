@@ -16,8 +16,14 @@ point3d Lsm6_imu::read_3d_burst(lsm6_regs_addr start_addr, double scale) {
             scale * merge_bytes(bytes_block[5], bytes_block[4])};
 }
 
+static double mg_to_mps2(double acc_in_mg) {
+    constexpr double earth_g = 9.80665;
+    return acc_in_mg * earth_g / 1000.0;
+}
+
 point3d Lsm6_imu::read_gyro() {
-    return read_3d_burst(lsm6_regs_addr::outx_l_g, gyro_scale);
+    auto accr = read_3d_burst(lsm6_regs_addr::outx_l_g, gyro_scale);
+    return {mg_to_mps2(accr.x), mg_to_mps2(accr.y), mg_to_mps2(accr.z)};
 }
 
 point3d Lsm6_imu::read_acc() {
