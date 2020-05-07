@@ -57,8 +57,8 @@ class Minimu_i2c_device : public I2c_device<regmap_type> {
     bool test_id() const;
 };
 
-inline uint16_t merge_bytes(const std::byte high, const std::byte low) {
-    return static_cast<uint16_t>(high) << 8 | static_cast<uint16_t>(low);
+inline int16_t merge_bytes(const std::byte high, const std::byte low) {
+    return static_cast<int16_t>(high) << 8 | static_cast<int16_t>(low);
 }
 
 template <typename regmap_type>
