@@ -45,7 +45,7 @@ void Lis3mdl_magmeter::set_default_rate() {
 }
 
 void Lis3mdl_magmeter::set_default_scale() {
-    const double default_scale = 0.1888;
+    constexpr double default_scale = 1.0 / 6842.0;
     const std::byte enable_default_scale{0x00};
     write(lis3mdl_regs_addr::ctrl_reg2, enable_default_scale);
     scale = default_scale;
