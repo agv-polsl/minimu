@@ -5,20 +5,32 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 add_executable(minimu
     src/main.cpp
-    src/minimu.cpp
-    src/lsm6_imu.cpp
-    src/lis3mdl_magnetometer.cpp
     src/text_frame_builder.cpp
 )
 
+add_library(minimu-lib
+    src/minimu.cpp
+    src/lsm6_imu.cpp
+    src/lis3mdl_magnetometer.cpp
+)
+
 target_include_directories(minimu
+    PRIVATE
+        ${PROJECT_SOURCE_DIR}/include
+    PRIVATE
+        ${PROJECT_SOURCE_DIR}/src
+)
+target_include_directories(minimu-lib
     PUBLIC
         ${PROJECT_SOURCE_DIR}/include
     PRIVATE
         ${PROJECT_SOURCE_DIR}/src
 )
+
 target_compile_features(minimu PUBLIC cxx_std_17)
-target_compile_options(minimu PRIVATE
+target_compile_features(minimu-lib PUBLIC cxx_std_17)
+
+set(common_compile_options
     -Wall
     -Wextra
     -Wshadow # Warn if variable overshadows parent context
@@ -32,6 +44,14 @@ target_compile_options(minimu PRIVATE
     -Wsign-conversion # Warn on sign conversions
     -Wdouble-promotion # Warn if float is implicit promoted to double
 )
+target_compile_options(minimu PRIVATE
+    ${common_compile_options}
+)
+target_compile_options(minimu-lib PRIVATE
+    ${common_compile_options}
+)
+
+target_link_libraries(minimu minimu-lib)
 
 # Target for generating documentation
 find_package(Doxygen)
