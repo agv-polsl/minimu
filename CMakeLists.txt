@@ -8,11 +8,12 @@ add_executable(minimu
     src/text_frame_builder.cpp
 )
 
-add_library(minimu-lib
+add_library(minimu_lib
     src/minimu.cpp
     src/lsm6_imu.cpp
     src/lis3mdl_magnetometer.cpp
 )
+add_library(minimu::minimu_lib ALIAS minimu_lib)
 
 target_include_directories(minimu
     PRIVATE
@@ -20,7 +21,7 @@ target_include_directories(minimu
     PRIVATE
         ${PROJECT_SOURCE_DIR}/src
 )
-target_include_directories(minimu-lib
+target_include_directories(minimu_lib
     PUBLIC
         ${PROJECT_SOURCE_DIR}/include
     PRIVATE
@@ -28,7 +29,7 @@ target_include_directories(minimu-lib
 )
 
 target_compile_features(minimu PUBLIC cxx_std_17)
-target_compile_features(minimu-lib PUBLIC cxx_std_17)
+target_compile_features(minimu_lib PUBLIC cxx_std_17)
 
 set(common_compile_options
     -Wall
@@ -47,11 +48,11 @@ set(common_compile_options
 target_compile_options(minimu PRIVATE
     ${common_compile_options}
 )
-target_compile_options(minimu-lib PRIVATE
+target_compile_options(minimu_lib PRIVATE
     ${common_compile_options}
 )
 
-target_link_libraries(minimu minimu-lib)
+target_link_libraries(minimu minimu_lib)
 
 # Target for generating documentation
 find_package(Doxygen)
