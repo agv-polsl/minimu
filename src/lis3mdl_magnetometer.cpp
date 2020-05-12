@@ -12,21 +12,13 @@ Lis3mdl_magmeter::Lis3mdl_magmeter(const uint8_t adapter_nr,
 }
 
 point3d Lis3mdl_magmeter::read() const {
-    std::byte enable_subaddress_updating{0b10000000};
+    constexpr size_t num_of_bytes_in_3d_point = 6;
+    constexpr auto start_addr = lis3mdl_regs_addr::out_x_l;
+    auto bytes_block = read_bytes_block(start_addr, num_of_bytes_in_3d_point);
 
-    auto addr_as_byte = static_cast<std::byte>(lis3mdl_regs_addr::out_x_l);
-    write(addr_as_byte | enable_subaddress_updating);
-
-    std::byte x_low = Minimu_i2c_device::read();
-    std::byte x_high = Minimu_i2c_device::read();
-    std::byte y_low = Minimu_i2c_device::read();
-    std::byte y_high = Minimu_i2c_device::read();
-    std::byte z_low = Minimu_i2c_device::read();
-    std::byte z_high = Minimu_i2c_device::read();
-
-    return {scale * merge_bytes(x_high, x_low),
-            scale * merge_bytes(y_high, y_low),
-            scale * merge_bytes(z_high, z_low)};
+    return {scale * merge_bytes(bytes_block[1], bytes_block[0]),
+            scale * merge_bytes(bytes_block[3], bytes_block[2]),
+            scale * merge_bytes(bytes_block[5], bytes_block[4])};
 }
 
 void Lis3mdl_magmeter::default_setup() {
