@@ -4,7 +4,7 @@ LABEL name="minimu-i2c-builder"
 
 RUN apt-get update && apt-get update \
 	&& apt-get install -y --no-install-recommends \
-	g++ \
+	clang \
 	make \
 	cmake \
 	libi2c-dev \
