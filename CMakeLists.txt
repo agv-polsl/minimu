@@ -9,7 +9,6 @@ add_executable(minimu
 )
 
 add_library(minimu-lib
-    src/minimu.cpp
     src/lsm6_imu.cpp
     src/lis3mdl_magnetometer.cpp
 )
