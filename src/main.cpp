@@ -12,16 +12,16 @@ int main(int argc, char* argv[]) {
      */
     if (argc != 2) {
         throw std::invalid_argument{
-            "One argument of I2C device adapter number is required."};
+            "One argument of I2C device adapter number is required"};
     }
 
     uint8_t adapter_num;
     try {
-        adapter_num = std::stoi(argv[1]);
+        adapter_num = static_cast<uint8_t>(std::stoi(argv[1]));
     } catch (std::invalid_argument& ie) {
         throw std::invalid_argument{
             "Given I2C adapter number is invalid; could not convert it to "
-            "number."
+            "number"
         };
     }
     minimu::Lsm6_imu imu{adapter_num, minimu::sa0_state::sa0_high};

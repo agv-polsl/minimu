@@ -54,11 +54,12 @@ class Minimu_i2c_device : public I2c_device<regmap_type> {
 
    protected:
     void connect(const sa0_state device_mode);
-    bool test_id() const;
+    bool device_id_ok() const;
 };
 
 inline int16_t merge_bytes(const std::byte high, const std::byte low) {
-    return static_cast<int16_t>(high) << 8 | static_cast<int16_t>(low);
+    return static_cast<int16_t>(static_cast<int>(high) << 8 |
+                                static_cast<int>(low));
 }
 
 template <typename regmap_type>
@@ -140,7 +141,8 @@ std::vector<std::byte> I2c_device<regmap_type>::read_bytes_block(
     auto ret = std::vector<std::byte>(bytes_to_read);
 
     write(static_cast<std::byte>(address));
-    if (::read(device_handle, ret.data(), bytes_to_read) != bytes_to_read) {
+    auto read_num = ::read(device_handle, ret.data(), bytes_to_read);
+    if (read_num != static_cast<ssize_t>(bytes_to_read)) {
         throw std::runtime_error{"Could not read from i2c device; "s +
                                  std::strerror(errno)};
     }
@@ -148,10 +150,8 @@ std::vector<std::byte> I2c_device<regmap_type>::read_bytes_block(
 }
 
 template <typename regmap_type, std::byte device_id>
-bool Minimu_i2c_device<regmap_type, device_id>::test_id() const {
-    if (I2c_device<regmap_type>::read(regmap_type::who_am_i) != device_id) {
-        throw std::runtime_error{"Connected i2c device id did not match"s};
-    }
+bool Minimu_i2c_device<regmap_type, device_id>::device_id_ok() const {
+    return I2c_device<regmap_type>::read(regmap_type::who_am_i) == device_id;
 }
 
 template <typename regmap_type, std::byte device_id>
@@ -179,8 +179,12 @@ void Minimu_i2c_device<regmap_type, device_id>::connect(
                 "for connecting device with associated address"};
             break;
     }
-    test_id();
+
+    if (device_id_ok() != true) {
+        throw std::runtime_error{"Connected i2c device id did not match"};
+    }
 }
+
 
 }  // namespace minimu
 
