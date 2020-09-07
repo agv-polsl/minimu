@@ -1,3 +1,4 @@
+#include <cstdlib>
 #include <exception>
 #include <iostream>
 
@@ -14,13 +15,14 @@ int main(int argc, char* argv[]) {
             "One argument of I2C device adapter number is required."};
     }
 
+    uint8_t adapter_num;
     try {
-        auto adapter_num = std::stoi(argv[1]);
+        adapter_num = std::stoi(argv[1]);
     } catch (std::invalid_argument& ie) {
         throw std::invalid_argument{
             "Given I2C adapter number is invalid; could not convert it to "
             "number."
-        }
+        };
     }
     minimu::Lsm6_imu imu{adapter_num, minimu::sa0_state::sa0_high};
     minimu::Lis3mdl_magmeter mag{adapter_num, minimu::sa0_state::sa0_high};
