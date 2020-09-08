@@ -13,6 +13,9 @@ class Lis3mdl_magmeter
    public:
     Lis3mdl_magmeter() = delete;
     Lis3mdl_magmeter(const uint8_t adapter_nr, const sa0_state device_mode);
+    /*
+     * Returns magnetometer readout in gauss.
+     */
     point3d read() const;
 
    private:

@@ -12,7 +12,13 @@ class Lsm6_imu : public Minimu_i2c_device<lsm6_regs_addr, lsm6_id> {
    public:
     Lsm6_imu() = delete;
     Lsm6_imu(const uint8_t adapter_nr, const sa0_state device_mode);
+    /**
+     * Returns gyroscope readout in degrees per second.
+     */
     point3d read_gyro();
+    /**
+     * Returns accelerometer readout in meters per second squared.
+     */
     point3d read_acc();
 
     void default_setup();
