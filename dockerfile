@@ -10,3 +10,4 @@ RUN apt-get update && apt-get update \
 	make \
 	cmake \
 	libi2c-dev \
+RUN update-ca-certificates
