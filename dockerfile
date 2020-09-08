@@ -9,5 +9,6 @@ RUN apt-get update && apt-get update \
 	clang \
 	make \
 	cmake \
-	libi2c-dev \
+	libi2c-dev
+
 RUN update-ca-certificates
