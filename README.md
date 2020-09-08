@@ -35,9 +35,9 @@ To find adapter number and examine your devices use `i2cdetect` tool.
 ### C++ library
 
 The library is available via CMake build.
-It doesn't feature system wide installation, instead it is best to place the source code
-inside your project and use it with `add_subdirectory(lib/minimu)` and
-`target_link_libraries(target minimu::minimu-lib)`.
+It doesn't feature a system wide installation, instead it is best to place the
+source code inside your project and use it with `add_subdirectory(lib/minimu)`
+and `target_link_libraries(target minimu::minimu-lib)`.
 
 Init your devices with:
 
